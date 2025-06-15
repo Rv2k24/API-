@@ -19,7 +19,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Rotas principais
+// Middleware de verificação de API Key
+app.use((req, res, next) => {
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey !== process.env.API_KEY) {
+    return res.status(403).json({ mensagem: 'Acesso negado: API Key inválida' });
+  }
+  next();
+});
+
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/campeonatos', campeonatosRouter);
