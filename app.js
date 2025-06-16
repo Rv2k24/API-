@@ -10,6 +10,7 @@ var campeonatosRouter = require('./routes/campeonatos');
 var timesRouter = require('./routes/times');
 var partidasRouter = require('./routes/partidas');
 var jogadoresRouter = require('./routes/jogadores');
+var authRouter = require('./routes/auth'); 
 
 var app = express();
 
@@ -19,21 +20,24 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Middleware de verificação de API Key
-app.use((req, res, next) => {
+const apiKeyMiddleware = (req, res, next) => {
   const apiKey = req.headers['x-api-key'];
   if (apiKey !== process.env.API_KEY) {
     return res.status(403).json({ mensagem: 'Acesso negado: API Key inválida' });
   }
   next();
-});
+};
 
+
+app.use('/auth', authRouter);
+
+// Rotas protegidas
+app.use('/campeonatos', apiKeyMiddleware, campeonatosRouter);
+app.use('/times', apiKeyMiddleware, timesRouter);
+app.use('/jogadores', apiKeyMiddleware, jogadoresRouter);
+app.use('/partidas', apiKeyMiddleware, partidasRouter);
+app.use('/users', apiKeyMiddleware, usersRouter);
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/campeonatos', campeonatosRouter);
-app.use('/times', timesRouter);
-app.use('/jogadores', jogadoresRouter);
-app.use('/partidas', partidasRouter);
 
 module.exports = app;
